@@ -55,7 +55,7 @@ Kubernetes では各コンポーネントやコマンドラインツールとの
 ```sh
 sudo apt install -y golang-cfssl
 
-# Download generate-cert.sh from https://github.com/CyberAgent/home-k8s-intern/blob/master/2020/how-to-create-cluster-logical/generate-cert.sh
+# Download generate-cert.sh from https://github.com/CyberAgentHack/home-kubernetes-2020/blob/master/how-to-create-cluster-logical-hardway/generate-cert.sh
 chmod +x generate-cert.sh
 ```
 
@@ -86,7 +86,7 @@ wget https://storage.googleapis.com/kubernetes-release/release/v1.18.6/bin/linux
 chmod +x kubectl
 sudo mv kubectl /usr/local/bin
 
-# Download generate-kubeconfig.sh from https://github.com/CyberAgent/home-k8s-intern/blob/master/2020/how-to-create-cluster-logical/generate-kubeconfig.sh
+# Download generate-kubeconfig.sh from https://github.com/CyberAgentHack/home-kubernetes-2020/blob/master/how-to-create-cluster-logical-hardway/generate-kubeconfig.sh
 chmod u+x generate-kubeconfig.sh
 ```
 
@@ -649,7 +649,7 @@ kubectl get node
 [クラスタ内部の名前解決](https://kubernetes.io/docs/concepts/services-networking/dns-pod-service/)を行うために CoreDNS をデプロイします。
 
 ```sh
-# Download coredns-1.7.0.yaml from https://github.com/CyberAgent/home-k8s-intern/blob/master/2020/how-to-create-cluster-logical/coredns-1.7.0.yaml
+# Download coredns-1.7.0.yaml from https://github.com/CyberAgentHack/home-kubernetes-2020/blob/master/how-to-create-cluster-logical-hardway/coredns-1.7.0.yaml
 kubectl apply -f coredns-1.7.0.yaml
 
 kubectl run test --image busybox:1.28 --restart Never -it --rm -- nslookup kubernetes
