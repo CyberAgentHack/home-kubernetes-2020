@@ -32,6 +32,33 @@
 
 インターフェースが無線 LAN と Ethernet の 2 種類があるので、Node 用のネットワーク (Kubernetes 間の通信) と外側のネットワークは別々にしても良いでしょう。本インターンで使用する Ubuntu ではネットワークの設定管理を Netplan というものに任せているので、Wi-Fi の設定がしたい場合はそのあたりを調べてみてください。
 
+#### NOTES
+
+ネットワークの設定には 2 つのルートがあります。
+
+1 つが家庭内ネットワークから DHCP で振られた IP をそのまま Node 用サブネットとするルートです。例えば家のネットワークアドレスが `192.168.1.0/24` ならば次のようになります。この場合外向きのトラフィックとクラスタ間のトラフィックは同じネットワークを通ります。
+
+- Node 用サブネット (例)
+  - `192.168.1.0/24`
+    - Node1: `192.168.1.117`
+    - Node2: `192.168.1.118`
+    - Node3: `192.168.1.119`
+
+もう 1 つが Kubernetes のクラスタ間通信を完全に分離するルートです。このルートでは家のネットワークを無線 LAN (Wi-Fi) で受けて、クラスタ間通信は Ethernet (物理ポート) で行います。こうすると少し設定は複雑になりますが、クラスタ間の通信が家のネットワークを通らないので、少しですがネットワーク機器に掛かる負荷を下げることができます。また、無線 LAN だけを利用する (LAN 線を伸ばしておくのは取り回しがしづらいので将来的に Wi-Fi を使いたいですよね) 場合と比べてレイテンシを小さくすることができます。効果としては微小ですが構成としてはきれいになるでしょう。例としては次のような感じです (私の環境はこっちです)。
+
+- Node 用サブネット (例)
+  - Ethernet
+  - `10.0.0.0/24`
+    - Node1: `10.0.0.11`
+    - Node2: `10.0.0.12`
+    - Node3: `10.0.0.13`
+- Node 外部通信用サブネット (例)
+  - 無線 LAN
+  - `192.168.1.0/24`
+    - Node1: `192.168.1.117`
+    - Node2: `192.168.1.118`
+    - Node3: `192.168.1.119`
+
 ### ホスト名
 
 ホスト名は決めなくても問題はないですがターミナルに入ったときにわかりやすくするためにも設定しておいたほうが良いでしょう。Kubernetes の Master となる Node も決定します。
@@ -155,7 +182,7 @@ ExecStart=/usr/local/bin/etcd \\
   --listen-client-urls https://${INTERNAL_IP}:2379,https://127.0.0.1:2379 \\
   --advertise-client-urls https://${INTERNAL_IP}:2379 \\
   --initial-cluster-token etcd-initial-token \\
-  --initial-cluster ${ETCD_NAME}=https://10.0.0.11:2380 \\
+  --initial-cluster ${ETCD_NAME}=https://${INTERNAL_IP}:2380 \\
   --initial-cluster-state new \\
   --data-dir=/var/lib/etcd
 Restart=on-failure
@@ -226,6 +253,7 @@ kube-apiserver を動かすためのユニットファイルを作成します�
 
 ```sh
 INTERNAL_IP="<master_ip>"
+CLUSTER_IP_NETWORK="<cluster_ip_network>"
 
 cat <<EOF | sudo tee /etc/systemd/system/kube-apiserver.service
 [Unit]
@@ -248,7 +276,7 @@ ExecStart=/usr/local/bin/kube-apiserver \\
   --etcd-cafile=/var/lib/kubernetes/ca.pem \\
   --etcd-certfile=/var/lib/kubernetes/kubernetes.pem \\
   --etcd-keyfile=/var/lib/kubernetes/kubernetes-key.pem \\
-  --etcd-servers=https://10.0.0.11:2379 \\
+  --etcd-servers=https://${INTERNAL_IP}:2379 \\
   --event-ttl=1h \\
   --encryption-provider-config=/var/lib/kubernetes/encryption-config.yaml \\
   --kubelet-certificate-authority=/var/lib/kubernetes/ca.pem \\
@@ -257,7 +285,7 @@ ExecStart=/usr/local/bin/kube-apiserver \\
   --kubelet-https=true \\
   --runtime-config='api/all=true' \\
   --service-account-key-file=/var/lib/kubernetes/service-account.pem \\
-  --service-cluster-ip-range=10.32.0.0/24 \\
+  --service-cluster-ip-range=${CLUSTER_IP_NETWORK} \\
   --service-node-port-range=30000-32767 \\
   --tls-cert-file=/var/lib/kubernetes/kubernetes.pem \\
   --tls-private-key-file=/var/lib/kubernetes/kubernetes-key.pem \\
@@ -292,6 +320,9 @@ sudo cp -ai kube-controller-manager.kubeconfig /var/lib/kubernetes/
 kube-controller-manager を動かすためのユニットファイルを作成します。作成したら起動してください。
 
 ```sh
+NODE_NETWORK="<node_network>"
+CLUSTER_IP_NETWORK="<cluster_ip_network>"
+
 cat <<EOF | sudo tee /etc/systemd/system/kube-controller-manager.service
 [Unit]
 Description=Kubernetes Controller Manager
@@ -300,7 +331,7 @@ Documentation=https://github.com/kubernetes/kubernetes
 [Service]
 ExecStart=/usr/local/bin/kube-controller-manager \\
   --bind-address=0.0.0.0 \\
-  --cluster-cidr=10.0.0.0/16 \\
+  --cluster-cidr=${NODE_NETWORK} \\
   --cluster-name=kubernetes \\
   --cluster-signing-cert-file=/var/lib/kubernetes/ca.pem \\
   --cluster-signing-key-file=/var/lib/kubernetes/ca-key.pem \\
@@ -308,7 +339,7 @@ ExecStart=/usr/local/bin/kube-controller-manager \\
   --leader-elect=true \\
   --root-ca-file=/var/lib/kubernetes/ca.pem \\
   --service-account-private-key-file=/var/lib/kubernetes/service-account-key.pem \\
-  --service-cluster-ip-range=10.32.0.0/24 \\
+  --service-cluster-ip-range=${CLUSTER_IP_NETWORK} \\
   --use-service-account-credentials=true \\
   --v=2
 Restart=on-failure
@@ -552,13 +583,15 @@ sudo mv kube-proxy.kubeconfig /var/lib/kube-proxy/kubeconfig
 kube-proxy の設定ファイルとユニットファイルを作成します。作成したら起動してください。
 
 ```sh
+NODE_NETWORK="<node_network>"
+
 cat <<EOF | sudo tee /var/lib/kube-proxy/kube-proxy-config.yaml
 kind: KubeProxyConfiguration
 apiVersion: kubeproxy.config.k8s.io/v1alpha1
 clientConnection:
   kubeconfig: "/var/lib/kube-proxy/kubeconfig"
 mode: "iptables"
-clusterCIDR: "10.0.0.0/24"
+clusterCIDR: "${NODE_NETWORK}"
 EOF
 
 
