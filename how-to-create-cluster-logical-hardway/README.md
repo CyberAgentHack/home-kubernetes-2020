@@ -150,7 +150,7 @@ sudo mv etcd-v3.4.13-linux-arm64/etcd* /usr/local/bin/
 ```sh
 sudo mkdir -p /etc/etcd /var/lib/etcd
 sudo chmod 700 /var/lib/etcd
-sudo cp ca.pem kubernetes-key.pem kubernetes.pem /etc/etcd/
+sudo cp ~/cert/ca.pem ~/cert/kubernetes-key.pem ~/cert/kubernetes.pem /etc/etcd/
 ```
 
 etcd を動かすためのユニットファイルを作成します。作成したら起動してください。起動の仕方は `systemctl` コマンドで行います。
