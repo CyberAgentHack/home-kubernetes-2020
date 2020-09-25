@@ -109,7 +109,7 @@ chmod +x generate-cert.sh
 各種コンポーネントが kube-apiserver と通信するための Kubernetes 用設定ファイルを生成します。
 
 ```sh
-wget https://storage.googleapis.com/kubernetes-release/release/v1.18.6/bin/linux/arm64/kubectl
+wget https://storage.googleapis.com/kubernetes-release/release/v1.19.2/bin/linux/arm64/kubectl
 chmod +x kubectl
 sudo mv kubectl /usr/local/bin
 
@@ -334,7 +334,7 @@ kube-controller-manager は Kubernetes におけるリソース管理などの�
 
 ```sh
 wget -q --show-progress --https-only --timestamping \
-  "https://storage.googleapis.com/kubernetes-release/release/v1.18.6/bin/linux/arm64/kube-controller-manager"
+  "https://storage.googleapis.com/kubernetes-release/release/v1.19.2/bin/linux/arm64/kube-controller-manager"
 chmod +x kube-controller-manager
 sudo mv kube-controller-manager /usr/local/bin/
 ```
@@ -386,7 +386,7 @@ kube-scheduler は Pod のスケジューリングを担うコンポーネント
 
 ```sh
 wget -q --show-progress --https-only --timestamping \
-  "https://storage.googleapis.com/kubernetes-release/release/v1.18.6/bin/linux/arm64/kube-scheduler"
+  "https://storage.googleapis.com/kubernetes-release/release/v1.19.2/bin/linux/arm64/kube-scheduler"
 chmod +x kube-scheduler
 sudo mv kube-scheduler /usr/local/bin/
 ```
@@ -480,7 +480,7 @@ sudo cp -ai ca.pem /var/lib/kubernetes/
 wget -q --show-progress --https-only --timestamping \
   https://github.com/kubernetes-sigs/cri-tools/releases/download/v1.18.0/crictl-v1.18.0-linux-arm64.tar.gz \
   https://github.com/containernetworking/plugins/releases/download/v0.8.6/cni-plugins-linux-arm64-v0.8.6.tgz \
-  https://storage.googleapis.com/kubernetes-release/release/v1.18.6/bin/linux/arm64/kubelet
+  https://storage.googleapis.com/kubernetes-release/release/v1.19.2/bin/linux/arm64/kubelet
 tar -xvf crictl-v1.18.0-linux-arm64.tar.gz
 sudo tar -xvf cni-plugins-linux-arm64-v0.8.6.tgz -C /opt/cni/bin/
 chmod +x crictl kubelet
@@ -596,7 +596,7 @@ kube-proxy は Kubernetes のネットワークを制御するためのコンポ
 
 ```sh
 wget -q --show-progress --https-only --timestamping \
-   https://storage.googleapis.com/kubernetes-release/release/v1.18.6/bin/linux/arm64/kube-proxy
+   https://storage.googleapis.com/kubernetes-release/release/v1.19.2/bin/linux/arm64/kube-proxy
 chmod +x kube-proxy
 sudo mv kube-proxy /usr/local/bin/
 ```
@@ -700,9 +700,9 @@ Node のコンポーネントを起動し終えたら問題なく kube-apiserver
 ```sh
 kubectl get node
 # NAME   STATUS   ROLES    AGE   VERSION
-# k8s1   Ready    <none>   13s   v1.18.6
-# k8s2   Ready    <none>   13s   v1.18.6
-# k8s3   Ready    <none>   13s   v1.18.6
+# k8s1   Ready    <none>   13s   v1.19.2
+# k8s2   Ready    <none>   13s   v1.19.2
+# k8s3   Ready    <none>   13s   v1.19.2
 ```
 
 ## クラスタ内 DNS のデプロイ
