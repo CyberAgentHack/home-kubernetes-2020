@@ -159,7 +159,6 @@ etcd を動かすためのユニットファイルを作成します。作成し
 ETCD_NAME="<etcd_name>"
 INTERNAL_IP="<master_ip>"
 
-# ETCD_UNSUPPORTED_ARCH を取り除いても良いかも
 cat <<EOF | sudo tee /etc/systemd/system/etcd.service
 [Unit]
 Description=etcd
