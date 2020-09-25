@@ -272,8 +272,8 @@ EOF
 ```sh
 sudo mkdir -p /etc/kubernetes/config
 sudo mkdir -p /var/lib/kubernetes/
-sudo cp -ai ca.pem ca-key.pem kubernetes-key.pem kubernetes.pem \
-  service-account-key.pem service-account.pem /var/lib/kubernetes/
+sudo cp -ai ~/cert/ca.pem ~/cert/ca-key.pem ~/cert/kubernetes-key.pem ~/cert/kubernetes.pem \
+  ~/cert/service-account-key.pem ~/cert/service-account.pem /var/lib/kubernetes/
 sudo cp -ai encryption-config.yaml /var/lib/kubernetes/
 ```
 
