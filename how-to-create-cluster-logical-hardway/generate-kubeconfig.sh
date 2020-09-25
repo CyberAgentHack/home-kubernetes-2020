@@ -26,7 +26,7 @@ echo -n "Address of Master Node: "
 read MASTER_ADDRESS
 
 echo "---> Generate kubelet kubeconfig"
-for instance in k8s1 k8s2 k8s3; do
+for instance in ${NODE1_HOSTNAME} ${NODE2_HOSTNAME} ${NODE3_HOSTNAME}; do
   kubectl config set-cluster kubernetes-the-hard-way \
     --certificate-authority=${CERT_DIR}/ca.pem \
     --embed-certs=true \
