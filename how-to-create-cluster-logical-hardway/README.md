@@ -360,7 +360,7 @@ Documentation=https://github.com/kubernetes/kubernetes
 [Service]
 ExecStart=/usr/local/bin/kube-controller-manager \\
   --bind-address=0.0.0.0 \\
-  --cluster-cidr=${CLUSTER_IP_NETWORK} \\
+  --cluster-cidr=${NODE_NETWORK} \\
   --cluster-name=kubernetes \\
   --cluster-signing-cert-file=/var/lib/kubernetes/ca.pem \\
   --cluster-signing-key-file=/var/lib/kubernetes/ca-key.pem \\
@@ -400,14 +400,14 @@ sudo mv kube-scheduler /usr/local/bin/
 Kubeconfig の配置を行います。
 
 ```sh
-sudo cp -ai kube-scheduler.kubeconfig /var/lib/kubernetes/
+sudo cp -ai ~/kubeconfig/kube-scheduler.kubeconfig /var/lib/kubernetes/
 ```
 
 kube-scheduler を動かすためのユニットファイルを作成します。作成したら起動してください。
 
 ```sh
 cat <<EOF | sudo tee /etc/kubernetes/config/kube-scheduler.yaml
-apiVersion: kubescheduler.config.k8s.io/v1alpha1
+apiVersion: kubescheduler.config.k8s.io/v1beta1
 kind: KubeSchedulerConfiguration
 clientConnection:
   kubeconfig: "/var/lib/kubernetes/kube-scheduler.kubeconfig"
@@ -430,6 +430,10 @@ RestartSec=5
 [Install]
 WantedBy=multi-user.target
 EOF
+
+sudo systemctl enable kube-scheduler.service
+sudo systemctl start kube-scheduler.service 
+sudo systemctl status  kube-scheduler.service 
 ```
 
 ## Master の動作チェック
@@ -484,11 +488,11 @@ sudo cp -ai ca.pem /var/lib/kubernetes/
 
 ```sh
 wget -q --show-progress --https-only --timestamping \
-  https://github.com/kubernetes-sigs/cri-tools/releases/download/v1.18.0/crictl-v1.18.0-linux-arm64.tar.gz \
-  https://github.com/containernetworking/plugins/releases/download/v0.8.6/cni-plugins-linux-arm64-v0.8.6.tgz \
+  https://github.com/kubernetes-sigs/cri-tools/releases/download/v1.19.0/crictl-v1.19.0-linux-arm64.tar.gz \
+  https://github.com/containernetworking/plugins/releases/download/v0.8.7/cni-plugins-linux-arm64-v0.8.7.tgz \
   https://storage.googleapis.com/kubernetes-release/release/v1.19.2/bin/linux/arm64/kubelet
-tar -xvf crictl-v1.18.0-linux-arm64.tar.gz
-sudo tar -xvf cni-plugins-linux-arm64-v0.8.6.tgz -C /opt/cni/bin/
+tar -xvf crictl-v1.19.0-linux-arm64.tar.gz
+sudo tar -xvf cni-plugins-linux-arm64-v0.8.7.tgz -C /opt/cni/bin/
 chmod +x crictl kubelet
 sudo mv crictl kubelet /usr/local/bin/
 
