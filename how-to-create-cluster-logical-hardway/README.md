@@ -214,7 +214,7 @@ kube-apiserver は Kubernetes の中核を担うコンポーネントです。�
 
 ```sh
 wget -q --show-progress --https-only --timestamping \
-  "https://storage.googleapis.com/kubernetes-release/release/v1.18.6/bin/linux/arm64/kube-apiserver"
+  "https://storage.googleapis.com/kubernetes-release/release/v1.19.2/bin/linux/arm64/kube-apiserver"
 chmod +x kube-apiserver
 sudo mv kube-apiserver /usr/local/bin/
 ```
