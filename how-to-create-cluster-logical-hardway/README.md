@@ -192,6 +192,34 @@ Environment=ETCD_UNSUPPORTED_ARCH=arm64
 [Install]
 WantedBy=multi-user.target
 EOF
+
+```
+etcdをシステム起動時に実行するようにします。また即時に起動させ状態を確認します。
+Active: activeとなっているか確認しましょう
+```
+sudo systemctl enable etcd.service
+sudo systemctl start etcd.service
+sudo systemctl status etcd.service
+
+● etcd.service - etcd
+     Loaded: loaded (/etc/systemd/system/etcd.service; enabled; vendor preset: enabled)
+     Active: active (running) since Fri 2020-09-25 02:10:10 UTC; 27s ago
+       Docs: https://github.com/coreos
+   Main PID: 4309 (etcd)
+      Tasks: 13 (limit: 9258)
+     CGroup: /system.slice/etcd.service
+             └─4309 /usr/local/bin/etcd --name rpi4-master1 --cert-file=/etc/etcd/kubernetes.pem --key-file=/etc/etcd/kubernetes-key.pem --peer-cert-file=/etc/etcd/kubernetes.pem --peer-key-file=/etc/etcd/kubernetes-key.pem --trusted-c>
+
+Sep 25 02:10:10 rpi4-node1 etcd[4309]: raft2020/09/25 02:10:10 INFO: raft.node: 84f8b1eba3d10230 elected leader 84f8b1eba3d10230 at term 2
+Sep 25 02:10:10 rpi4-node1 etcd[4309]: setting up the initial cluster version to 3.4
+Sep 25 02:10:10 rpi4-node1 etcd[4309]: set the initial cluster version to 3.4
+Sep 25 02:10:10 rpi4-node1 etcd[4309]: published {Name:rpi4-master1 ClientURLs:[https://192.168.11.14:2379]} to cluster f4b27d1154aa4089
+Sep 25 02:10:10 rpi4-node1 etcd[4309]: ready to serve client requests
+Sep 25 02:10:10 rpi4-node1 etcd[4309]: enabled capabilities for version 3.4
+Sep 25 02:10:10 rpi4-node1 etcd[4309]: ready to serve client requests
+Sep 25 02:10:10 rpi4-node1 systemd[1]: Started etcd.
+Sep 25 02:10:10 rpi4-node1 etcd[4309]: serving client requests on 192.168.11.14:2379
+Sep 25 02:10:10 rpi4-node1 etcd[4309]: serving client requests on 127.0.0.1:2379
 ```
 
 動作確認を行います。コメントのような出力が得られれば OK です。
