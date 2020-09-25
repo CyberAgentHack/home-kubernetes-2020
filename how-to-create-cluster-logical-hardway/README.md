@@ -324,6 +324,7 @@ RestartSec=5
 [Install]
 WantedBy=multi-user.target
 EOF
+
 ```
 
 ## kube-controller-manager のデプロイ (Master)
@@ -359,7 +360,7 @@ Documentation=https://github.com/kubernetes/kubernetes
 [Service]
 ExecStart=/usr/local/bin/kube-controller-manager \\
   --bind-address=0.0.0.0 \\
-  --cluster-cidr=${NODE_NETWORK} \\
+  --cluster-cidr=${CLUSTER_IP_NETWORK} \\
   --cluster-name=kubernetes \\
   --cluster-signing-cert-file=/var/lib/kubernetes/ca.pem \\
   --cluster-signing-key-file=/var/lib/kubernetes/ca-key.pem \\
@@ -376,6 +377,11 @@ RestartSec=5
 [Install]
 WantedBy=multi-user.target
 EOF
+
+
+sudo systemctl enable kube-controller-manager.service
+sudo systemctl start kube-controller-manager.service
+sudo systemctl start kube-controller-manager.service
 ```
 
 ## kube-scheduler のデプロイ (Master)
