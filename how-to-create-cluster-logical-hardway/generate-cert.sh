@@ -230,7 +230,7 @@ cfssl gencert \
   kube-scheduler-csr.json | cfssljson -bare kube-scheduler
 
 
-KUBERNETES_HOSTNAMES=kubernetes,kubernetes.default,kubernetes.default.svc,kubernetes.default.svc.cluster,kubernetes.svc.cluster.local
+KUBERNETES_HOSTNAMES=kubernetes,kubernetes.default,kubernetes.default.svc,kubernetes.default.svc.cluster,kubernetes.default.svc.cluster.local
 
 cat > kubernetes-csr.json <<EOF
 {
