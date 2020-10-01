@@ -4,4 +4,6 @@
 
 Blog: https://developers.cyberagent.co.jp/blog/archives/27443/
 
+* [物理構築手順](./how-to-create-cluster-physical)
+
 ![おうちKubernetes2020](./homek8s2020.jpeg)
