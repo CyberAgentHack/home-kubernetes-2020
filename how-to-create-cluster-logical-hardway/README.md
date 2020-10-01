@@ -616,8 +616,8 @@ EOF
 
 ```sh
 # Node1 の場合
-sudo ip route add 10.2.0.0/24 via 10.0.0.12 dev eth0
-sudo ip route add 10.3.0.0/24 via 10.0.0.13 dev eth0
+sudo ip route add 10.10.2.0/24 via 10.0.0.12 dev eth0
+sudo ip route add 10.10.3.0/24 via 10.0.0.13 dev eth0
 ```
 
 このルーティング設定は再起動すると消えてしまいます。永続化をしたい方は Netplan の設定にルーティング設定を記述できるので調べてみてください。
