@@ -1,12 +1,11 @@
+# Kubernetes Hardway for Raspberry Pi
 みなさんクラスタの組み立ては終わりましたか？
 
 ここからは Kubernetes を構築していきましょう。
 
 ### NOTES
 
- 本手順は [kelseyhightower/kubernetes-the-hard-way](https://github.com/kelseyhightower/kubernetes-the-hard-way) をもとに Raspberry Pi 用 + このインターン用に書いたものです。
- 
- サービスの起動やその他 Kubernetes に関係ないコマンドは書いてなかったりするため少しだけ気をつけてください。文としては明記してあります。
+サービスの起動やその他 Kubernetes に関係ないコマンドは書いてなかったりするため少しだけ気をつけてください。文としては明記してあります。
 
 ## 準備
 
@@ -24,9 +23,10 @@
     - Node2: `10.0.0.12`
     - Node3: `10.0.0.13`
 - Pod 用サブネット
-  - `10.1.0.0/24`
-  - `10.2.0.0/24`
-  - `10.3.0.0/24`
+  - `10.10.0.0/16`
+    - Node1: `10.10.1.0/24`
+    - Node2: `10.10.2.0/24`
+    - Node3: `10.10.3.0/24`
 - ClusterIP 用サブネット
   - `10.32.0.0/24`
 
@@ -34,9 +34,9 @@
 
 #### NOTES
 
-ネットワークの設定には 2 つのルートがあります。
+ネットワークの設定はひとそれぞれですが、大きく分けて 2 つの設定があります。
 
-1 つが家庭内ネットワークから DHCP で振られた IP をそのまま Node 用サブネットとするルートです。例えば家のネットワークアドレスが `192.168.1.0/24` ならば次のようになります。この場合外向きのトラフィックとクラスタ間のトラフィックは同じネットワークを通ります。
+1 つが家庭内ネットワークから DHCP で振られた IP をそのまま Node 用サブネットとするような設定です。例えば家のネットワークアドレスが `192.168.1.0/24` ならば次のようになります。この場合外向きのトラフィックとクラスタ間のトラフィックは同じネットワークを通ります。
 
 - Node 用サブネット (例)
   - `192.168.1.0/24`
@@ -44,7 +44,7 @@
     - Node2: `192.168.1.118`
     - Node3: `192.168.1.119`
 
-もう 1 つが Kubernetes のクラスタ間通信を完全に分離するルートです。このルートでは家のネットワークを無線 LAN (Wi-Fi) で受けて、クラスタ間通信は Ethernet (物理ポート) で行います。こうすると少し設定は複雑になりますが、クラスタ間の通信が家のネットワークを通らないので、少しですがネットワーク機器に掛かる負荷を下げることができます。また、無線 LAN だけを利用する (LAN 線を伸ばしておくのは取り回しがしづらいので将来的に Wi-Fi を使いたいですよね) 場合と比べてレイテンシを小さくすることができます。効果としては微小ですが構成としてはきれいになるでしょう。例としては次のような感じです (私の環境はこっちです)。
+もう 1 つが Kubernetes のクラスタ間通信を完全に分離するような設定です。このルートでは家のネットワークを無線 LAN で受けて、クラスタ間通信は Ethernet (物理ポート) で行います。こうすると少し設定は複雑になりますが、クラスタ間の通信が家のネットワークを通らないので、少しですがネットワーク機器に掛かる負荷を下げたり、クラスタ間通信のレイテンシを微小ながら小さくすることができます。また、トラフィックもおうち k8s に取り付けたハブ内に収まります。こうすることによって構成としてはきれいになるでしょう。例としては次のような感じです (私の環境はこっちです)。
 
 - Node 用サブネット (例)
   - Ethernet
@@ -61,7 +61,7 @@
 
 ### ホスト名
 
-ホスト名は決めなくても問題はないですがターミナルに入ったときにわかりやすくするためにも設定しておいたほうが良いでしょう。Kubernetes の Master となる Node も決定します。
+次にホスト名を決めましょう。ホスト名は Kubernetes 内の Node 名として扱われるので設定しておく必要があります。オプションで別の Node 名を設定することもできますが、ターミナルに入ったときにわかりやすくするためにも設定しておいたほうが良いでしょう。Kubernetes の Master となる Node も決定します。
 
 - Node1: `k8s1` (Master)
 - Node2: `k8s2`
@@ -71,7 +71,7 @@
 
 ### その他
 
-このような初期設定が終わったり、何か区切りの良い地点まで到達したら SD カードのイメージを保存しておくと何かおかしくなったときにすぐにリカバリすることができます。バックアップの仕方は何でも良いですが、Win32 Disk Imager などを使うと簡単にイメージが作成できます。
+このような初期設定が終わったり、何か区切りの良い地点まで到達したら SD カードのイメージを保存しておくと何かおかしくなったときにすぐにリカバリすることができます。バックアップの仕方は何でも良いですが、Win32 Disk Imager などを使うと簡単にイメージが作成できます。`dd` を使っても良いでしょう。
 
 ## 証明書の生成
 
@@ -93,9 +93,9 @@ chmod +x generate-cert.sh
 # Hostname of Node1: k8s1
 # Hostname of Node2: k8s2
 # Hostname of Node3: k8s3
-# Addresses of Node1 (x.x.x.x[,x.x.x.x]): 10.0.0.11,192.168.136.176
-# Addresses of Node2 (x.x.x.x[,x.x.x.x]): 10.0.0.12,192.168.136.177
-# Addresses of Node3 (x.x.x.x[,x.x.x.x]): 10.0.0.13,192.168.136.178
+# Addresses of Node1 (x.x.x.x[,x.x.x.x]): 10.0.0.11,192.168.1.176
+# Addresses of Node2 (x.x.x.x[,x.x.x.x]): 10.0.0.12,192.168.1.177
+# Addresses of Node3 (x.x.x.x[,x.x.x.x]): 10.0.0.13,192.168.1.178
 # Address of Kubernetes ClusterIP (first address of ClusterIP subnet): 10.32.0.1
 # ...
 # ...
@@ -319,7 +319,7 @@ sudo cp -ai kube-controller-manager.kubeconfig /var/lib/kubernetes/
 kube-controller-manager を動かすためのユニットファイルを作成します。作成したら起動してください。
 
 ```sh
-NODE_NETWORK="<node_network>"
+POD_NETWORK="<pod_network>"
 CLUSTER_IP_NETWORK="<cluster_ip_network>"
 
 cat <<EOF | sudo tee /etc/systemd/system/kube-controller-manager.service
@@ -330,7 +330,7 @@ Documentation=https://github.com/kubernetes/kubernetes
 [Service]
 ExecStart=/usr/local/bin/kube-controller-manager \\
   --bind-address=0.0.0.0 \\
-  --cluster-cidr=${NODE_NETWORK} \\
+  --cluster-cidr=${POD_NETWORK} \\
   --cluster-name=kubernetes \\
   --cluster-signing-cert-file=/var/lib/kubernetes/ca.pem \\
   --cluster-signing-key-file=/var/lib/kubernetes/ca-key.pem \\
@@ -463,7 +463,7 @@ sudo apt -y install containerd runc
 Pod ネットワークの設定をします。今回は Node によって Pod のネットワークが異なるので CIDR を変えつつ実行してください。
 
 ```sh
-POD_CIDR=<your_pod_network>
+POD_CIDR=<node_pod_cidr>
 
 cat <<EOF | sudo tee /etc/cni/net.d/10-bridge.conf
 {
@@ -509,7 +509,7 @@ EOF
 kubelet の設定ファイルとユニットファイルを作成します。作成したら起動してください。
 
 ```sh
-POD_CIDR=<your_pod_network>
+POD_CIDR=<node_pod_cidr>
 
 cat <<EOF | sudo tee /var/lib/kubelet/kubelet-config.yaml
 kind: KubeletConfiguration
@@ -582,7 +582,7 @@ sudo mv kube-proxy.kubeconfig /var/lib/kube-proxy/kubeconfig
 kube-proxy の設定ファイルとユニットファイルを作成します。作成したら起動してください。
 
 ```sh
-NODE_NETWORK="<node_network>"
+POD_NETWORK="<pod_network>"
 
 cat <<EOF | sudo tee /var/lib/kube-proxy/kube-proxy-config.yaml
 kind: KubeProxyConfiguration
@@ -590,7 +590,7 @@ apiVersion: kubeproxy.config.k8s.io/v1alpha1
 clientConnection:
   kubeconfig: "/var/lib/kube-proxy/kubeconfig"
 mode: "iptables"
-clusterCIDR: "${NODE_NETWORK}"
+clusterCIDR: "${POD_NETWORK}"
 EOF
 
 
@@ -619,6 +619,8 @@ EOF
 sudo ip route add 10.2.0.0/24 via 10.0.0.12 dev eth0
 sudo ip route add 10.3.0.0/24 via 10.0.0.13 dev eth0
 ```
+
+このルーティング設定は再起動すると消えてしまいます。永続化をしたい方は Netplan の設定にルーティング設定を記述できるので調べてみてください。
 
 ## kubelet の kube-apiserver 認証 RBAC 設定
 
@@ -827,10 +829,22 @@ Kubernetes を動かすことができましたか？
 
 動かせた方はおめでとうございます。
 
+動かせなかった方は各種コンポーネントの `systemctl status <service_name>` や `journalctl -u <service_name>` などを確認してエラーが起きていないか確かめてみると良いでしょう。
+
 もしさらに Kubernetes を突き詰めてみたいと思った人は下記のようなことにチャンレンジしてみてください。
 
 - Step Up
+  - Clustering etcd
+  - MetalLB 導入
   - Master HA
-  - 1.19 対応
+  - Kubernetes 1.19 対応
+  - Kubernetes コンポーネント自前ビルド
   - CRI の入れ替え (Docker, cri-o, etc.)
   - CNI Plugin の入れ替え (Flannel, Calico, etc.)
+
+## Copyright
+
+ 本手順は Kelsey Hightower 氏の [kelseyhightower/kubernetes-the-hard-way](https://github.com/kelseyhightower/kubernetes-the-hard-way) をもとに Raspberry Pi 用 + このインターン用に書いたものであり、[CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/) の下に公開されています。
+ 
+ <a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/4.0/"><img alt="Creative Commons License" style="border-width:0" src="https://i.creativecommons.org/l/by-nc-sa/4.0/88x31.png" /></a>
+ 
