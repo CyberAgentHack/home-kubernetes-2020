@@ -2,3 +2,4 @@
 
 - [Prometheus](prometheus.md) を使ったモニタリング
 - [weave-scope](weave-scope.md) を使った可視化
+- [OpenPolicyAgent](openpolicyagent.md) を使ったKubernetes Admission Controll
